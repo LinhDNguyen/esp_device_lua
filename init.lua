@@ -11,11 +11,38 @@ configSw=(gpioPins[14])
 isConfigEnable = false
 isWifiConnected = false
 configTmr = 1
+configurationTable = {}
+function readConfigTable()
+    local isConfigExist = false
+    l = file.list();
+    for k,v in pairs(l) do
+        if (k == "config") then
+            isConfigExist = true
+            break
+        end
+    end
+    if (isConfigExist) then
+        str = ""
+        file.open("config", "r+")
+        str = file.read()
+        file.close()
+        configurationTable = cjson.decode(str)
+    else
+        --write init config
+        file.open("config", "w")
+        file.write("{}")
+        file.flush()
+        file.close()
+    end
+end
 function checkConnected( )
     -- Check wifi connected and do smt
     if (wifi.sta.status() == 5) then
         tmr.stop(configTmr)
         setLed(0, gpio.LOW)
+        if (isConfigEnable) then
+            dofile("config.lc")
+        end
     end
 end
 function smartConfigSuccessedCb(ssid, pass)
@@ -53,6 +80,7 @@ end
 
 -- Code
 initConfig()
+readConfigTable()
 tmr.alarm(configTmr, 5000, 0, configStop)
 wifi.setmode(wifi.STATION)
 wifi.sta.autoconnect(1)
