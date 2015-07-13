@@ -40,7 +40,7 @@ function setLed(freq, initVal)
     tmr.stop(ledTimer)
     tmr.alarm(ledTimer, ledTimerPeriod, 1, ledNext)
 end
-function init()
+function initLed()
     -- ### Init GPIOs
     -- wifi led - off
     gpio.mode(ledPin, gpio.OUTPUT)
@@ -48,5 +48,5 @@ function init()
 end
 
 -- Code
-init()
+initLed()
 setLed(2, gpio.LOW)
