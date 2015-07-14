@@ -11,11 +11,14 @@ function printTable( c )
    end
 end
 function set(c, key, value)
+   configurationTable[key] = value
+   c:send("\r\n[" .. key .. "]: [" .. configurationTable[key] .. "]")
 end
 function get(c, key)
    if (not key) then
       printTable(c)
    else
+      c:send("\r\n[" .. key .. "]: [" .. configurationTable[key] .. "]")
    end
 end
 function save(c)
@@ -36,7 +39,7 @@ function help(c)
 end
 
 -- a simple telnet server
-configServer=net.createServer(net.TCP)
+configServer=net.createServer(net.TCP, 300)
 configServer:listen(2323,function(conn)
    conn:on("receive",function(c,l)
       -- node.input(l)           -- works like pcall(loadstring(l)) but support multiple separate line
@@ -46,16 +49,55 @@ configServer:listen(2323,function(conn)
       if (idx and (idx > 0)) then
          cmd = s:sub(0, idx - 1)
       end
-      print("cmd: " .. cmd)
       if (cmd == "help") then
          help(c)
       elseif (cmd == "save") then
          save(c)
       elseif (cmd == "get") then
          key = nil
+         if (idx and (idx > 0)) then
+            i = idx
+            for i=idx,s:len(),1 do
+               if (s:sub(i, i) ~= " ") then
+                  idx = i
+                  break
+               end
+            end
+            if (idx < (s:len() - 1)) then
+               key = s:sub(idx, s:len())
+            end
+         end
          get(c, key)
+      elseif (cmd == "set") then
+         key = nil
+         value = nil
+         if (idx and (idx > 0)) then
+            i = idx
+            for i=idx,s:len(),1 do
+               if (s:sub(i, i) ~= " ") then
+                  idx = i
+                  break
+               end
+            end
+            if (idx < (s:len() - 1)) then
+               key = s:sub(idx, s:len())
+               value = key
+            end
+            idx = key:find("%s")
+            if (idx and (idx > 0)) then
+               key = key:sub(0, idx - 1)
+               value = value:sub(idx, value:len())
+            end
+            idx = value:find("%w")
+            if (idx and (idx > 0) and (idx < value:len())) then
+               value = value:sub(idx, value:len())
+            end
+            if (key and value) then
+               set(c, key, value)
+            end
+         end
       end
-      c:send("\r\n")
+      c:send("\r\n>")
    end)
    conn:on("disconnection",function(c)
       print("Config client disconnected")

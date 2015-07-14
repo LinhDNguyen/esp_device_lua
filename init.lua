@@ -6,8 +6,8 @@ dofile("led.lc")
 -- Startup, led blink 10 times per second.
 setLed(10, gpio.LOW)
 
--- Setup config trigger. In first 5s, if GPIO 14 switch is pressed, goto config
-configSw=(gpioPins[14])
+-- Setup config trigger. In first 5s, if GPIO 0 switch is pressed, goto config
+configSw=(gpioPins[0])
 isConfigEnable = false
 isWifiConnected = false
 configTmr = 1
